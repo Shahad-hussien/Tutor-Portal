@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+  
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean
+  image         String?
+  createdAt     DateTime
+  updatedAt     DateTime
+  sessions      Session[]
+  accounts      Account[]
+  
+
+  role          String    @default("tutor") 
+}
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  expiresAt             DateTime?
+  password              String?
+}
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+}
+model Student {
+  id           String       @id @default(uuid())
+  fullName     String
+  parentPhone  String
+  studentCode  String       @unique
+  gradeLevel   String
+  schoolName   String
+  groupId      String?      
+  group        Group?       @relation(fields: [groupId], references: id)
+  attendance   Attendance[]
+  createdAt    DateTime     @default(now())
+}
+
+
+model Group {
+  id          String       @id @default(uuid())
+  name        String       
+  timeSlot    String?      
+  students    Student[]
+  schedules   Schedule[]
+  attendance  Attendance[]
+  createdAt   DateTime     @default(now())
+}
+
+
+model Schedule {
+  id          String   @id @default(uuid())
+  groupId     String
+  group       Group    @relation(fields: [groupId], references: id)
+  dayOfWeek   String  
+  startTime   String   
+  endTime     String   
+}
+
+
+model Attendance {
+  id          String   @id @default(uuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: id)
+  groupId     String
+  group       Group    @relation(fields: [groupId], references: id)
+  date        DateTime @default(now())
+  isPresent   Boolean  @default(false)
+}
